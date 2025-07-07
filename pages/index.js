@@ -1,6 +1,7 @@
 import Head from 'next/head';
 import LoginForm from '../components/LoginForm';
-import VideoUpload from '../components/VideoUpload.js';
+import VideoUpload from '../components/VideoUpload';
+
 export default function Home() {
   return (
     <>
@@ -9,6 +10,7 @@ export default function Home() {
         <meta name="description" content="Från feed till feedback till frag." />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
+
       <main
         style={{
           backgroundColor: '#0D0D0D',
@@ -19,7 +21,7 @@ export default function Home() {
           alignItems: 'center',
           justifyContent: 'center',
           fontFamily: 'sans-serif',
-          padding: '2rem',
+          padding: '2rem'
         }}
       >
         <h1 style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>
@@ -30,7 +32,9 @@ export default function Home() {
         </p>
 
         <LoginForm />
+
         <div style={{ height: '2rem' }} /> {/* Avstånd */}
+
         <VideoUpload />
       </main>
     </>
