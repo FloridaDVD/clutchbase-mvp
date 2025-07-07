@@ -1,7 +1,6 @@
 import Head from 'next/head';
 import LoginForm from '../components/LoginForm';
 import VideoUpload from '../components/VideoUpload.js';
-
 export default function Home() {
   return (
     <>
