@@ -1,32 +1,74 @@
-export default async function handler(req, res) {
-  if (req.method !== 'POST') return res.status(405).end();
+import { useState } from 'react';
+import { supabase } from '../lib/supabaseClient';
 
-  const { description } = req.body;
-  const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+export default function LoginForm() {
+  const [email, setEmail] = useState('');
+  const [ssn, setSsn] = useState('');
+  const [message, setMessage] = useState('');
 
-  const openaiRes = await fetch('https://api.openai.com/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${OPENAI_API_KEY}`,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      model: 'gpt-4',
-      messages: [
-        {
-          role: 'system',
-          content: 'Du är en professionell e-sportcoach som ger taktisk feedback på spelarens klipp.'
-        },
-        {
-          role: 'user',
-          content: `Här är beskrivningen av klippet: "${description}". Ge konkret feedback som hjälper spelaren att bli bättre.`
-        }
-      ]
-    })
-  });
+  const handleLogin = async (e) => {
+    e.preventDefault();
 
-  const result = await openaiRes.json();
-  const aiReply = result.choices?.[0]?.message?.content || 'Ingen feedback tillgänglig just nu.';
+    if (!email || !ssn) {
+      setMessage('Fyll i både e-post och personnummer.');
+      return;
+    }
 
-  res.status(200).json({ feedback: aiReply });
+    // Skicka magic link via Supabase
+    const { error } = await supabase.auth.signInWithOtp({ email });
+
+    if (error) {
+      setMessage('Fel vid inloggning: ' + error.message);
+    } else {
+      setMessage('En magisk länk har skickats till din e-post!');
+    }
+  };
+
+  return (
+    <div style={{ maxWidth: '400px', margin: '2rem auto', color: 'white' }}>
+      <form onSubmit={handleLogin}>
+        <h2>Logga in</h2>
+        <input
+          type="email"
+          placeholder="Din e-post"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          style={inputStyle}
+        />
+        <input
+          type="text"
+          placeholder="Personnummer (ååååmmddxxxx)"
+          value={ssn}
+          onChange={(e) => setSsn(e.target.value)}
+          style={inputStyle}
+        />
+        <button type="submit" style={buttonStyle}>
+          Skicka magisk länk
+        </button>
+      </form>
+      {message && <p>{message}</p>}
+    </div>
+  );
 }
+
+const inputStyle = {
+  width: '100%',
+  padding: '0.8rem',
+  margin: '0.5rem 0',
+  borderRadius: '6px',
+  border: '1px solid #333',
+  backgroundColor: '#222',
+  color: '#fff'
+};
+
+const buttonStyle = {
+  width: '100%',
+  padding: '0.8rem',
+  marginTop: '0.5rem',
+  borderRadius: '6px',
+  border: 'none',
+  backgroundColor: '#00FFFF',
+  color: '#000',
+  fontWeight: 'bold',
+  cursor: 'pointer'
+};
