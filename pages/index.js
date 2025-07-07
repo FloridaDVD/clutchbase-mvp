@@ -20,3 +20,12 @@ export default function Home() {
     </div>
   );
 }
+import LoginForm from '../components/LoginForm';
+
+export default function Home() {
+  return (
+    <div style={{ backgroundColor: '#111', height: '100vh', padding: '2rem' }}>
+      <LoginForm />
+    </div>
+  );
+}
