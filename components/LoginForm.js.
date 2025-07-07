@@ -14,7 +14,6 @@ export default function LoginForm() {
       return;
     }
 
-    // Skicka magic link via Supabase
     const { error } = await supabase.auth.signInWithOtp({ email });
 
     if (error) {
@@ -59,4 +58,17 @@ const inputStyle = {
   border: '1px solid #333',
   backgroundColor: '#222',
   color: '#fff'
-}
+};
+
+const buttonStyle = {
+  width: '100%',
+  padding: '0.8rem',
+  backgroundColor: '#00FFFF',
+  color: '#000',
+  border: 'none',
+  borderRadius: '6px',
+  cursor: 'pointer',
+  fontWeight: 'bold',
+  marginTop: '1rem'
+};
+
