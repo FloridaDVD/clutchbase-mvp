@@ -8,7 +8,7 @@ const VideoUpload = () => {
 
   const handleVideoUpload = async (event) => {
     const file = event.target.files[0];
-    if (!file || !description.trim()) return;
+    if (!file || description.trim() === '') return;
 
     setUploading(true);
 
@@ -18,24 +18,23 @@ const VideoUpload = () => {
     formData.append('resource_type', 'video');
 
     try {
-      const response = await fetch('https://api.cloudinary.com/v1_1/dwpgyp3kt/video/upload', {
+      const response = await fetch('https://api.cloudinary.com/v1_1/dhvyp3k7t/video/upload', {
         method: 'POST',
-        body: formData
+        body: formData,
       });
 
       const data = await response.json();
       setVideoURL(data.secure_url);
 
-      // Skicka till OpenAI med din beskrivning
+      // Skicka till OpenAI för feedback
       const aiResponse = await fetch('/api/feedback', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ description })
+        body: JSON.stringify({ description }),
       });
 
       const aiData = await aiResponse.json();
       setFeedback(aiData.feedback);
-
     } catch (error) {
       console.error('Fel vid uppladdning eller AI-feedback:', error);
     } finally {
@@ -45,25 +44,20 @@ const VideoUpload = () => {
 
   return (
     <div style={{ textAlign: 'center', padding: '2rem', backgroundColor: '#0D0D0D', color: '#fff' }}>
-      <h2>🎥 Ladda upp highlight-video</h2>
+      <h2>🎥 Ladda upp Highlight-video</h2>
       <input
         type="text"
         placeholder="Beskriv klippet (t.ex. 1v3 clutch B site)"
         value={description}
         onChange={(e) => setDescription(e.target.value)}
-        style={{ padding: '0.5rem', width: '80%', marginBottom: '1rem' }}
+        style={{ width: '80%', padding: '0.5rem', marginBottom: '1rem' }}
       />
-      <br />
-      <input type="file" accept="video/*" onChange={handleVideoUpload} disabled={uploading} />
-      {uploading && <p>🚀 Laddar upp och analyserar...</p>}
-      {videoURL && (
-        <div style={{ marginTop: '2rem' }}>
-          <video src={videoURL} controls width="500" />
-        </div>
-      )}
+      <input type="file" accept="video/*" onChange={handleVideoUpload} />
+      {uploading && <p>Laddar upp...</p>}
+      {videoURL && <video src={videoURL} controls style={{ marginTop: '1rem', width: '80%' }} />}
       {feedback && (
-        <div style={{ marginTop: '2rem', backgroundColor: '#111', padding: '1rem', borderRadius: '10px' }}>
-          <h3>🧠 AI Feedback:</h3>
+        <div style={{ marginTop: '1.5rem', backgroundColor: '#222', padding: '1rem', borderRadius: '8px' }}>
+          <h3>🧠 AI-feedback:</h3>
           <p>{feedback}</p>
         </div>
       )}
