@@ -1,31 +1,37 @@
-import React from 'react';
-import VideoUpload from '../components/VideoUpload';
-
-export default function Home() {
-  return (
-    <div style={{
-      fontFamily: 'sans-serif',
-      textAlign: 'center',
-      backgroundColor: '#0D0D0D',
-      color: '#fff',
-      minHeight: '100vh',
-      padding: '2rem'
-    }}>
-      <h1 style={{ fontSize: '3rem' }}>CLUTCHBASE MVP</h1>
-      <p style={{ fontSize: '1.2rem' }}>Från feed till feedback till frag. 🎯</p>
-
-      <div style={{ marginTop: '3rem' }}>
-        <VideoUpload />
-      </div>
-    </div>
-  );
-}
+import Head from 'next/head';
 import LoginForm from '../components/LoginForm';
 
 export default function Home() {
   return (
-    <div style={{ backgroundColor: '#111', height: '100vh', padding: '2rem' }}>
-      <LoginForm />
-    </div>
+    <>
+      <Head>
+        <title>CLUTCHBASE MVP</title>
+        <meta name="description" content="Från feed till feedback till frag." />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+      </Head>
+
+      <main
+        style={{
+          backgroundColor: '#0D0D0D',
+          color: '#FFFFFF',
+          minHeight: '100vh',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontFamily: 'sans-serif',
+          padding: '2rem'
+        }}
+      >
+        <h1 style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>
+          Välkommen till <span style={{ color: '#00FFFF' }}>CLUTCHBASE</span>
+        </h1>
+        <p style={{ marginBottom: '2rem', fontSize: '1.2rem', color: '#FF007F' }}>
+          Från feed till feedback till frag. 🎯
+        </p>
+        
+        <LoginForm />
+      </main>
+    </>
   );
 }
