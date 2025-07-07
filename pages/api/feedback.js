@@ -1,74 +1,44 @@
-import { useState } from 'react';
-import { supabase } from '../lib/supabaseClient';
+export default async function handler(req, res) {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Endast POST tillåts' });
+  }
 
-export default function LoginForm() {
-  const [email, setEmail] = useState('');
-  const [ssn, setSsn] = useState('');
-  const [message, setMessage] = useState('');
+  const { description } = req.body;
 
-  const handleLogin = async (e) => {
-    e.preventDefault();
+  if (!description) {
+    return res.status(400).json({ error: 'Beskrivning saknas' });
+  }
 
-    if (!email || !ssn) {
-      setMessage('Fyll i både e-post och personnummer.');
-      return;
-    }
+  // Skicka prompt till OpenAI (fungerar endast om du har API-nyckel i .env)
+  try {
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: 'gpt-4',
+        messages: [
+          {
+            role: 'system',
+            content: 'Du är en e-sportcoach. Ge konstruktiv feedback på ett highlight-klipp baserat på spelarens beskrivning.',
+          },
+          {
+            role: 'user',
+            content: description,
+          },
+        ],
+        temperature: 0.7,
+      }),
+    });
 
-    // Skicka magic link via Supabase
-    const { error } = await supabase.auth.signInWithOtp({ email });
+    const data = await response.json();
+    const feedback = data.choices?.[0]?.message?.content || 'Ingen feedback kunde genereras.';
 
-    if (error) {
-      setMessage('Fel vid inloggning: ' + error.message);
-    } else {
-      setMessage('En magisk länk har skickats till din e-post!');
-    }
-  };
-
-  return (
-    <div style={{ maxWidth: '400px', margin: '2rem auto', color: 'white' }}>
-      <form onSubmit={handleLogin}>
-        <h2>Logga in</h2>
-        <input
-          type="email"
-          placeholder="Din e-post"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          style={inputStyle}
-        />
-        <input
-          type="text"
-          placeholder="Personnummer (ååååmmddxxxx)"
-          value={ssn}
-          onChange={(e) => setSsn(e.target.value)}
-          style={inputStyle}
-        />
-        <button type="submit" style={buttonStyle}>
-          Skicka magisk länk
-        </button>
-      </form>
-      {message && <p>{message}</p>}
-    </div>
-  );
+    return res.status(200).json({ feedback });
+  } catch (error) {
+    console.error('Fel vid OpenAI-anrop:', error);
+    return res.status(500).json({ error: 'Kunde inte hämta feedback' });
+  }
 }
-
-const inputStyle = {
-  width: '100%',
-  padding: '0.8rem',
-  margin: '0.5rem 0',
-  borderRadius: '6px',
-  border: '1px solid #333',
-  backgroundColor: '#222',
-  color: '#fff'
-};
-
-const buttonStyle = {
-  width: '100%',
-  padding: '0.8rem',
-  marginTop: '0.5rem',
-  borderRadius: '6px',
-  border: 'none',
-  backgroundColor: '#00FFFF',
-  color: '#000',
-  fontWeight: 'bold',
-  cursor: 'pointer'
-};
