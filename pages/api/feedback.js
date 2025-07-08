@@ -1,44 +1,19 @@
+import openai from '@/lib/openai';
+
 export default async function handler(req, res) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Endast POST tillåts' });
-  }
+  const { videoUrl } = req.body;
 
-  const { description } = req.body;
+  if (!videoUrl) return res.status(400).json({ error: 'Ingen video-URL angiven' });
 
-  if (!description) {
-    return res.status(400).json({ error: 'Beskrivning saknas' });
-  }
+  const prompt = `Du är en professionell e-sportcoach. Titta på denna highlight-video från en CS2-match: ${videoUrl}. 
+Ge en konstruktiv feedback om spelarens prestation. Kommentera beslut, positionering, timing, aim, samt eventuella misstag. 
+Gör det pedagogiskt men proffsigt.`;
 
-  // Skicka prompt till OpenAI (fungerar endast om du har API-nyckel i .env)
-  try {
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
-      },
-      body: JSON.stringify({
-        model: 'gpt-4',
-        messages: [
-          {
-            role: 'system',
-            content: 'Du är en e-sportcoach. Ge konstruktiv feedback på ett highlight-klipp baserat på spelarens beskrivning.',
-          },
-          {
-            role: 'user',
-            content: description,
-          },
-        ],
-        temperature: 0.7,
-      }),
-    });
+  const response = await openai.chat.completions.create({
+    model: 'gpt-4',
+    messages: [{ role: 'user', content: prompt }],
+  });
 
-    const data = await response.json();
-    const feedback = data.choices?.[0]?.message?.content || 'Ingen feedback kunde genereras.';
-
-    return res.status(200).json({ feedback });
-  } catch (error) {
-    console.error('Fel vid OpenAI-anrop:', error);
-    return res.status(500).json({ error: 'Kunde inte hämta feedback' });
-  }
+  const feedback = response.choices[0]?.message?.content || 'Ingen feedback genererad.';
+  res.status(200).json({ feedback });
 }
