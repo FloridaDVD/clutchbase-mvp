@@ -1,62 +1,47 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
+import FeedbackDisplay from './FeedbackDisplay';
 
 export default function VideoUpload() {
+  const [file, setFile] = useState(null);
   const [description, setDescription] = useState('');
-  const [videoURL, setVideoURL] = useState('');
   const [feedback, setFeedback] = useState('');
   const [uploading, setUploading] = useState(false);
 
-  const handleVideoUpload = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file || !description.trim()) return;
-
+  const handleSubmit = async (e) => {
+    e.preventDefault();
     setUploading(true);
+
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('upload_preset', 'clutchbase-video-upload');
-    formData.append('resource_type', 'video');
 
-    try {
-      const response = await fetch(
-        'https://api.cloudinary.com/v1_1/…/video/upload',
-        { method: 'POST', body: formData }
-      );
-      const data = await response.json();
-      setVideoURL(data.secure_url);
+    const uploadRes = await fetch('/api/upload', {
+      method: 'POST',
+      body: formData,
+    });
 
-      const aiRes = await fetch('/api/feedback', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ description }),
-      });
-      const aiData = await aiRes.json();
-      setFeedback(aiData.feedback);
-    } catch (err) {
-      console.error('Upload error:', err);
-    } finally {
-      setUploading(false);
-    }
+    const { url } = await uploadRes.json();
+
+    const feedbackRes = await fetch('/api/feedback', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ videoUrl: url }),
+    });
+
+    const { feedback } = await feedbackRes.json();
+    setFeedback(feedback);
+    setUploading(false);
   };
 
   return (
-    <div style={{ textAlign: 'center', padding: '2rem', backgroundColor: '#222', color: '#fff' }}>
-      <h2>Ladda upp highlight-video</h2>
-      <input
-        type="text"
-        placeholder="Beskriv klippet (t.ex. 1v3 clutch B site)"
-        value={description}
-        onChange={(e) => setDescription(e.target.value)}
-        style={{ width: '80%', padding: '0.5rem', marginBottom: '1rem' }}
-      />
-      <input type="file" accept="video/*" onChange={handleVideoUpload} />
-      {uploading && <p>Laddar upp...</p>}
-      {videoURL && <video src={videoURL} controls style={{ width: '100%', maxWidth: '600px' }} />}
-      {feedback && (
-        <>
-          <h3>Feedback:</h3>
-          <p>{feedback}</p>
-        </>
-      )}
+    <div className="p-4 bg-black rounded-xl shadow-md text-white">
+      <form onSubmit={handleSubmit}>
+        <input type="file" accept="video/*" onChange={(e) => setFile(e.target.files[0])} className="mb-2" />
+        <input type="text" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Beskriv klippet" className="w-full mb-2 p-2 rounded" />
+        <button type="submit" disabled={uploading} className="bg-cyan-500 px-4 py-2 rounded text-black">
+          {uploading ? 'Laddar upp...' : 'Skicka till AI'}
+        </button>
+      </form>
+      {feedback && <FeedbackDisplay feedback={feedback} />}
     </div>
   );
 }
